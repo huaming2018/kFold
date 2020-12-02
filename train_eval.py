@@ -54,7 +54,7 @@ def train(config, model, train_iter, dev_iter, save_path):
             loss = F.cross_entropy(outputs, labels)
             loss.backward()
             optimizer.step()
-            if total_batch % 20 == 0:
+            if total_batch % 50 == 0:
                 # 每多少轮输出在训练集和验证集上的效果
                 true = labels.data.cpu()
                 predic = torch.max(outputs.data, 1)[1].cpu()
