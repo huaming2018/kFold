@@ -1,2 +1,10 @@
 finance
-realty
+house
+household
+education
+science
+fashion
+politics
+game
+entertainment
+sport

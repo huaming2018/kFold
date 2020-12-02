@@ -24,43 +24,31 @@ if __name__ == '__main__':
     # torch.cuda.manual_seed_all(1)
     # torch.backends.cudnn.deterministic = True  # 保证每次结果一样
 
-    start_time = time.time()
-    print("Loading data...")
-    # 从原始数据集合中切分好train 和 dev 数据可以不同
-    # 家居
+    for i in range(5):
+        start_time = time.time()
+        print("Loading data...")
 
-    # 读取有标签数据
-    data_train = pd.read_csv('THUCNews/data/data_train.csv', engine="python", encoding="utf_8_sig")
-    # 选出要训练的正样本
-    select_from_data_train = data_train[data_train['class_label'] == 9]
-    # 将正样本的标签刷成1
-    select_from_data_train['class_label'] = select_from_data_train['class_label'].apply(lambda x:1)
-    # 读取负样本数据集
-    data_neg = pd.read_csv('THUCNews/data/data_neg.csv', engine="python", encoding="utf_8_sig")
-    # 选取和正样本数量一致的负样本
-    select_from_data_neg = data_neg.sample(select_from_data_train.shape[0])
-    # 将负样本的标签刷成0
-    select_from_data_neg['class_label'] = select_from_data_neg['class_label'].apply(lambda x: 0)
-    # 合并数据集
-    data_merge = pd.merge(select_from_data_train, select_from_data_neg, how="outer")
-    # 打乱数据
-    data_merge = data_merge.sample(frac=1).reset_index(drop=True)
+        # 读取数据
+        data_train = pd.read_csv('THUCNews/data/data_train.csv', engine="python", encoding="utf_8_sig")
+        # 划分边界
+        boundary1 = data_train.shape[0] * i / 5.0
+        boundary2 = data_train.shape[0] * (i+1) / 5.0
+        # 取中间的那一份作为验证集
+        dev_set = data_train[boundary1:boundary2]
+        # 剩下的数据合并为训练集
+        train_set = pd.merge(data_train[:boundary1], data_train[boundary2:], how="outer")
+        # 将数据保存到模型定义好的路径里面去
+        train_set.to_csv('THUCNews/data/train.csv', index=False, header=False)
+        dev_set.to_csv('THUCNews/data/dev.csv', index=False, header=False)
+        # train_data, dev_data, test_data = build_dataset(config)
+        train_data, dev_data = build_dataset(config)
+        train_iter = build_iterator(train_data, config)
+        dev_iter = build_iterator(dev_data, config)
+        # test_iter = build_iterator(test_data, config)
+        time_dif = get_time_dif(start_time)
+        print("Time usage:", time_dif)
 
-    # 切分数据集
-    train_set = data_merge.loc[:data_merge.shape[0] * 0.8]
-    dev_set = data_merge.loc[data_merge.shape[0] * 0.8:]
-    # 将数据保存到模型定义好的路径里面去
-    train_set.to_csv('THUCNews/data/train.csv', index=False, header=False)
-    dev_set.to_csv('THUCNews/data/dev.csv', index=False, header=False)
-    # train_data, dev_data, test_data = build_dataset(config)
-    train_data, dev_data = build_dataset(config)
-    train_iter = build_iterator(train_data, config)
-    dev_iter = build_iterator(dev_data, config)
-    # test_iter = build_iterator(test_data, config)
-    time_dif = get_time_dif(start_time)
-    print("Time usage:", time_dif)
-
-    # train
-    model = x.Model(config).to(config.device)
-    # train(config, model, train_iter, dev_iter, test_iter)
-    train(config, model, train_iter, dev_iter, save_path="THUCNews/saved_dict/"+ model_name + '.ckpt')
+        # train
+        model = x.Model(config).to(config.device)
+        # train(config, model, train_iter, dev_iter, test_iter)
+        train(config, model, train_iter, dev_iter, save_path="THUCNews/saved_dict/"+ model_name + str(i) + '.ckpt')
