@@ -31,8 +31,8 @@ if __name__ == '__main__':
         # 读取数据
         data_train = pd.read_csv('THUCNews/data/data_train.csv', engine="python", encoding="utf_8_sig")
         # 划分边界
-        boundary1 = data_train.shape[0] * i / 5.0
-        boundary2 = data_train.shape[0] * (i+1) / 5.0
+        boundary1 = int(data_train.shape[0] * i / 5.0)
+        boundary2 = int(data_train.shape[0] * (i+1) / 5.0)
         # 取中间的那一份作为验证集
         dev_set = data_train[boundary1:boundary2]
         # 剩下的数据合并为训练集
